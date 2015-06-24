@@ -1,21 +1,28 @@
 require 'sinatra'
 require 'sonos'
 require 'ngrok/tunnel'
+require 'json'
 
 # Get the sonos
 system = Sonos::System.new
 speaker = system.speakers.first
+unless speaker
+	raise "No speaker found"
+end
+puts "Found a speaker: #{speaker.name}, playing #{speaker.now_playing[:title] || 'nothing'} by #{speaker.now_playing[:artist] || 'no one'}"
 
 # Forward the port
 PORT = 8885
 set :port, PORT
 Ngrok::Tunnel.start({ port: PORT })
 
+puts "Forwarding to #{Ngrok::Tunnel.ngrok_url}"
+
 #
 # Get the currently playing song
 #
 get '/playing' do
-  speaker.now_playing
+  speaker.now_playing.to_json
 end
 
 #
